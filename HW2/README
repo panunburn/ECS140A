@@ -15,7 +15,7 @@ statement ::= assignment | print | do | if | for
 
 
 Reasons for choosing for loop:
-Since the most frequent iteration method we use in c programming is the for loop, and there are existing token (<,>,=,!) defined in this program, so it would be easy to overload these token for the for loop condition checking.
+Since the most frequent iteration method we use in c programming is the for loop, and there are existing tokens (<,>,=,!) defined in this program, so it would be easy to overload these tokens for the for loop condition checking.
 
 Testcases for part5 : t100.e, t101.e, t102.e, t103.e, t104.e
 all included in part5 directory

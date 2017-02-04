@@ -14,18 +14,23 @@ public class Parser {
     Parser(Scan scanner) {
 	this.scanner = scanner;
 	scan();
+    symtable = new SymTable();
 	program();
 	if( tok.kind != TK.EOF )
 	    parse_error("junk after logical end of program");
     }
 
+    private SymTable symtable;
+  
     private void program() {
 	block();
     }
 
     private void block(){
+      symtable.push();
 	declaration_list();
 	statement_list();
+      symtable.pop();
     }
 
     private void declaration_list() {
@@ -40,13 +45,26 @@ public class Parser {
 
     private void declaration() {
 	mustbe(TK.DECLARE);
+      if (is(TK.ID)) {
+        checkRedeclare();
+      }
 	mustbe(TK.ID);
 	while( is(TK.COMMA) ) {
 	    scan();
+        checkRedeclare();
 	    mustbe(TK.ID);
 	}
     }
 
+  private void checkRedeclare() {
+    if (symtable.curExist(tok.string)){
+      System.err.println("redeclaration of variable "+tok.string);
+    }
+    else{
+      symtable.addVar(tok.string);
+    }
+  }
+  
     private void statement_list() {
       while (is(TK.ID) || is(TK.ASSIGN) || is(TK.DO) || is(TK.IF) || is(TK.TILDE) || is(TK.PRINT)){
         statement();
@@ -140,12 +158,43 @@ public class Parser {
   private void ref_id() {
     if (is(TK.TILDE)){//WITH [~[NUM]]
       scan();
+      int num = -1;
       if (is(TK.NUM)){//WITH [NUM]
+        num = Integer.parseInt(tok.string);
         scan();
       }
+      checkScopeDeclare(num);
+    }
+    if (is(TK.ID)){
+      checkHasDeclare();
     }
     mustbe(TK.ID);
   }
+  
+  private void checkScopeDeclare(int scope) {
+    if (scope == -1){
+      if (!symtable.scopeExist(tok.string,symtable.maxscope())){
+        System.err.println("no such variable ~"+tok.string+" on line "+tok.lineNumber);
+        System.exit(1);
+      }
+    }
+    else{
+      if (!symtable.scopeExist(tok.string, scope)){
+        System.err.println("no such variable ~"+scope+tok.string+" on line "+tok.lineNumber);
+        System.exit(1);
+      }
+    }
+  }
+  
+  private void checkHasDeclare() {
+    if (!symtable.exist(tok.string)){
+      System.err.println(tok.string+" is an undeclared variable on line "+tok.lineNumber);
+      System.exit(1);
+    }
+  }
+        
+        
+        
     // is current token what we want?
     private boolean is(TK tk) {
         return tk == tok.kind;

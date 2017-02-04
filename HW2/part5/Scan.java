@@ -93,6 +93,12 @@ public class Scan {
             return ccase1('>',TK.ENDDO);
             case '=':
             return ccase1('=',TK.ASSIGN);
+            case '{':                                  //my BNF
+            return ccase1('{',TK.FOR);
+            case '}':
+            return ccase1('}',TK.ENDFOR);              //my BNF ENDFOR
+            case '$':
+            return ccase1('$',TK.SEP);
             case '~':
             return ccase1('~',TK.TILDE);
 		    case EOF:

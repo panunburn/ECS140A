@@ -35,6 +35,11 @@ public class TK {
     public static final TK DIVIDE = new TK("TK.DIVIDE");   // /
     public static final TK ASSIGN = new TK("TK.ASSIGN");   // =
     public static final TK TILDE  = new TK("TK.TILDE");    // ~
+  
+    public static final TK FOR    = new TK("TK.FOR");      // {    MY NEW BNF
+    public static final TK ENDFOR = new TK("TK.ENDFOR");   // }
+    public static final TK SEP    = new TK("TK.SEP");      // $
+  
     public static final TK ID     = new TK("TK.ID");	   // identifier
   
     public static final TK NUM    = new TK("TK.NUM");	   // number

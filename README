@@ -1,0 +1,21 @@
+Weiran Guo, 912916431
+
+All five parts done.
+
+New BNF Rules:
+
+for ::= '{' [assignment] '$' [factor condition factor] '$' [assignment] '$' block '}'
+condition ::= ['=''='] | ['<'['=']] | ['>'['=']] | ['!''=']
+
+If factor condition factor is blank then it is an infinite loop
+
+Also, the statement should be updated to
+
+statement ::= assignment | print | do | if | for
+
+
+Reasons for choosing for loop:
+Since the most frequent iteration method we use in c programming is the for loop, and there are existing token (<,>,=,!) defined in this program, so it would be easy to overload these token for the for loop condition checking.
+
+Testcases for part5 : t100.e, t101.e, t102.e, t103.e, t104.e
+all included in part5 directory

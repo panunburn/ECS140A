@@ -1,0 +1,3 @@
+running e2c
+mustbe: want TK.SEP, got Token(TK.ID bbbb 3)
+can't parse: line 3 missing token (mustbe)

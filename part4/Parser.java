@@ -1,4 +1,5 @@
 /* *** This file is given as part of the programming assignment. *** */
+import java.util.*;
 
 public class Parser {
 
@@ -15,6 +16,7 @@ public class Parser {
 	this.scanner = scanner;
 	scan();
     symtable = new SymTable();
+      nameList = new ArrayList<Pair>();
 	program();
 	if( tok.kind != TK.EOF )
 	    parse_error("junk after logical end of program");
@@ -22,17 +24,35 @@ public class Parser {
 
     private SymTable symtable;
   
+  private void printPtimes(int n){
+    for (int i = 0; i<n; i++){
+      System.out.print("x_");
+    }
+  }
+  
+  private ArrayList<Pair> nameList;
     private void program() {
+      System.out.println("#include <stdio.h>");
+      System.out.println("int main(){");
 	block();
+      System.out.println("return 0;");
+      System.out.println("}");
     }
 
     private void block(){
       symtable.push();
 	declaration_list();
 	statement_list();
+      ArrayList<String> top = symtable.top();
+      for (String n : top){
+        for (Pair temm : nameList){
+          if (temm.getFirst().equals(n)){
+            temm.minusOne();
+          }
+        }
+    }
       symtable.pop();
     }
-
     private void declaration_list() {
 	// below checks whether tok is in first set of declaration.
 	// here, that's easy since there's only one token kind in the set.
@@ -57,11 +77,28 @@ public class Parser {
     }
 
   private void checkRedeclare() {
+    boolean exist = false;
+    int number = 0;
     if (symtable.curExist(tok.string)){
       System.err.println("redeclaration of variable "+tok.string);
     }
     else{
       symtable.addVar(tok.string);
+      for (Pair item : nameList){
+        if (item.getFirst().equals(tok.string)){
+          item.addOne();
+          exist = true;
+          number = item.getSecond();
+        }
+      }
+      if (exist == false){//no same name
+        Pair thisP = new Pair(tok.string,1);
+        nameList.add(thisP);
+        number = 1;
+      }
+      System.out.print("int ");
+      printPtimes(number);
+      System.out.println(tok.string+";");
     }
   }
   
@@ -88,43 +125,56 @@ public class Parser {
   
   private void mydo() {
     mustbe(TK.DO);
+    System.out.print("while ( 0>= ");
     guarded_cmd();
     mustbe(TK.ENDDO);
   }
   
   private void myif() {
     scan();
+    System.out.print("if ( 0>= ");
     guarded_cmd();
     while (is(TK.ELSEIF)){
       scan();
+      System.out.print("else if (0 >= ");
       guarded_cmd();
     }
     if (is(TK.ELSE)) {
       scan();
+      System.out.println("else {");
       block();
+      System.out.println("}");
     }
     mustbe(TK.ENDIF);
   }
   
   private void guarded_cmd() {
     expr();
+    System.out.print(")");
     mustbe(TK.THEN);
+    System.out.println("{");
     block();
+    System.out.println("}");
   }
   
   private void assignment() {
     ref_id();
     mustbe(TK.ASSIGN);
+    System.out.print("=");
     expr();
+    System.out.println(";");
   }
   private void myprint() {
     mustbe(TK.PRINT);
+    System.out.print("printf(\"%d\\n\", ");
     expr();
+    System.out.println(");");
   }
   
   private void expr() {
     term();
     while (is(TK.PLUS) || is(TK.MINUS)){
+      System.out.print(tok.string);
       scan();
       term();
     }
@@ -133,6 +183,7 @@ public class Parser {
   private void term() {
     factor();
     while (is(TK.TIMES) || is(TK.DIVIDE)){
+      System.out.print(tok.string);
       scan();
       factor();
     }
@@ -140,14 +191,17 @@ public class Parser {
   
   private void factor() {
     if (is(TK.LPAREN)){
+      System.out.print("(");
       scan();
       expr();
       mustbe(TK.RPAREN);
+      System.out.print(")");
     }
     else if (is(TK.ID) || is(TK.TILDE)){
       ref_id();
     }
     else if (is(TK.NUM)){
+      System.out.print(tok.string);
       mustbe(TK.NUM);
     }
     else{
@@ -156,17 +210,46 @@ public class Parser {
   }
   
   private void ref_id() {
+    int number = 0;
     if (is(TK.TILDE)){//WITH [~[NUM]]
       scan();
-      int num = -1;
+      int num = -1;//global
       if (is(TK.NUM)){//WITH [NUM]
         num = Integer.parseInt(tok.string);
         scan();
       }
-      checkScopeDeclare(num);
+      checkScopeDeclare(num);//exist in that scope
+    
+      if (num == -1){//global
+        number = 1;
+      }
+      else{
+        for (Pair item : nameList){
+          if (item.getFirst().equals(tok.string)){//match
+            int total = item.getSecond();
+            for (int i = 0; i < num; i++){//scan n scope
+              if (symtable.scopeExist(tok.string,i))
+                total--;
+            }
+            number = total;
+          }
+        }
+      }
+      printPtimes(number);
+      System.out.print(tok.string);
+      scan();
+      return;
     }
+    
     if (is(TK.ID)){
       checkHasDeclare();
+      for (Pair item : nameList){
+        if (item.getFirst().equals(tok.string)){//match
+          number = item.getSecond();
+        }
+      }
+      printPtimes(number);
+      System.out.print(tok.string);
     }
     mustbe(TK.ID);
   }
